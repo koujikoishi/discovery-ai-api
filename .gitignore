@@ -1,0 +1,12 @@
+node_modules/
+venv/
+__pycache__/
+chroma/
+chroma.log
+.env
+.env.local
+.env.production
+.DS_Store
+.vscode/
+*.log
+*.pyc
