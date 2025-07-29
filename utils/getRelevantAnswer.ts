@@ -20,7 +20,7 @@ import { getRelatedQuestions } from './getRelatedQuestions.js';
 import { templatePriorityIntents } from './templateIntents.js';
 import { fetchEmbedding, fetchChatCompletion } from './openaiFetch.js';
 import getFallbackResponse from './getFallbackResponse.js';
-import { classifyIntent } from './classifyIntent';
+import { classifyIntent } from './classifyIntent.js';
 import { Pinecone } from '@pinecone-database/pinecone';
 
 const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! });
