@@ -1,5 +1,3 @@
-// utils/faqTemplates.ts
-
 export interface AnswerTemplate {
   answer: string;
   relatedQuestions: string[];
@@ -287,8 +285,7 @@ export function getLoginIssueTemplate(): AnswerTemplate {
 }
 
 // ---------------------
-// ここから追加部分：
-// intent === 'faq' 用のテンプレートマッチ関数
+// FAQ 用テンプレートマッチ関数
 // ---------------------
 
 export function getFaqTemplate(question: string): AnswerTemplate | null {
@@ -300,13 +297,35 @@ export function getFaqTemplate(question: string): AnswerTemplate | null {
     '解約': getCancelTemplate(),
     '導入ステップ': getOnboardingTemplate(),
     'ログインできない': getLoginIssueTemplate(),
-    'ログインができない': getLoginIssueTemplate(),   // 追加！
-    'ログインできません': getLoginIssueTemplate(),   // 追加！
     '問い合わせ': getSupportTemplate(),
     'どの業界': getIndustryTemplate(),
     'どんな機能': getFunctionTemplate(),
-  };
-
-  const matched = Object.keys(map).find((key) => question.includes(key));
+  };  
+  const matched = Object.keys(map).find(key => question.includes(key));
   return matched ? map[matched] : null;
+}
+
+// ---------------------
+// Billing 用テンプレート
+// ---------------------
+
+export function getBillingTemplate(): AnswerTemplate {
+  return {
+    answer: `
+課金タイミング（支払い時期）についてご案内します。
+
+1. 🟢 **Starterプラン**  
+   7日間の無料トライアル終了後にクレジットカードで課金され、以後毎月同日に自動請求されます。
+
+2. 🔵 **Proプラン**  
+   申込時に課金され、以後毎月同日に自動請求されます。
+
+3. 🟣 **Enterpriseプラン**  
+   月末締め翌月末払いの請求書による銀行振込となります。`,
+    relatedQuestions: [
+      '請求書払いは可能ですか？',
+      'クレジットカードなしでも利用できますか？',
+      '料金の支払いサイクルを教えてください',
+    ],
+  };
 }

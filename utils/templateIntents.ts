@@ -1,5 +1,3 @@
-// utils/templateIntents.js
-
 export const templatePriorityIntents: string[] = [
   'pricing',
   'contract',
@@ -12,5 +10,6 @@ export const templatePriorityIntents: string[] = [
   'security',
   'integration',
   'compliance',
-  'faq', // ← 追加（NEW）
+  'billing',    // ← 追加（NEW）
+  'faq',        // ← 既存（OK）
 ];
