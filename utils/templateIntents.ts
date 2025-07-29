@@ -10,6 +10,7 @@ export const templatePriorityIntents: string[] = [
   'security',
   'integration',
   'compliance',
-  'billing',    // ← 追加（NEW）
-  'faq',        // ← 既存（OK）
+  'billing',     
+  'faq',         
+  'overview',    // ✅ 今回追加 ← NEW
 ];
