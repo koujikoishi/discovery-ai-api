@@ -1,8 +1,7 @@
-import dotenv from "dotenv";
-dotenv.config();
-
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
+import dotenv from "dotenv";
+dotenv.config();
 
 import type { ChatMessage } from "./utils/types.js";
 import { getRelevantAnswer } from "./utils/getRelevantAnswer.js";
@@ -19,17 +18,19 @@ import {
   getIndustryTemplate,
   getDifferenceTemplate,
   getLoginIssueTemplate,
-  getBillingTemplate,      // ← 追加
+  getBillingTemplate,
 } from "./utils/faqTemplate.js";
 
 const allowedOrigins = [
-  "https://discovery-ai-ui.vercel.app",
   "http://localhost:3000",
+  "http://localhost:3001", // ← 忘れず追加！
+  "https://discovery-ai-ui.vercel.app",
 ];
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// ✅ CORSミドルウェア（origin: 動的判定 + credentials）
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -43,6 +44,7 @@ app.use(
   })
 );
 
+// ✅ 明示的にヘッダー付与（Safari対応など）
 app.use((req: Request, res: Response, next: NextFunction) => {
   const origin = req.headers.origin;
   if (origin && allowedOrigins.includes(origin)) {
