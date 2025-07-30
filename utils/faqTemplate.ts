@@ -316,7 +316,7 @@ export function getSupportTemplate(): AnswerTemplate {
     answer: `サポートに関するご質問ですね。以下をご確認ください。
 
 📩 **メールでのお問い合わせ**  
-support@discovery-ai.jp
+ai-support@elife.co.jp
 
 💬 **お問い合わせフォーム**  
 [お問い合わせはこちら](https://ai.elife.co.jp/contact)

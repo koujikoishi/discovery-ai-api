@@ -11,7 +11,7 @@ export function getSupportTemplate(): {
 ---
 
 📩 **メールでのお問い合わせ**  
-support@elife.co.jp までご連絡ください（平日10時〜17時対応）
+ai-support@elife.co.jp までご連絡ください（平日10時〜17時対応）
 
 🗒️ **お問い合わせフォーム**  
 https://ai.elife.co.jp/contact（平日10時〜17時対応）
