@@ -13,6 +13,7 @@ import { extractTeamInfo } from "./utils/extractTeamInfo.js";
 import getSmalltalkResponse from "./utils/getSmalltalkResponse.js";
 import getFallbackResponse from "./utils/getFallbackResponse.js";
 import { getRelatedQuestions } from "./utils/getRelatedQuestions.js";
+import { getOverviewTemplate } from "./utils/faqTemplate.js";
 import {
   getContractTemplate,
   getOnboardingTemplate,
@@ -22,6 +23,10 @@ import {
   getDifferenceTemplate,
   getLoginIssueTemplate,
   getBillingTemplate,
+  getSupportTemplate,
+  getSecurityTemplate,
+  getIntegrationTemplate,
+  getComplianceTemplate, // ←★これを追加
 } from "./utils/faqTemplate.js";
 
 const allowedOrigins = [
@@ -141,8 +146,14 @@ app.post("/api/chat", async (req: Request<{}, {}, ChatRequestBody>, res: Respons
       break;
     }
 
-    case "faq":
+    case "contract":
+      reply = getContractTemplate().answer;
+      relatedQuestions = getRelatedQuestions("contract");
+      updatedHistory.push({ role: "system", content: "intent:contract" });
+    break;
+
     case "pricing":
+    case "faq":
     case "function": {
       const result = await getRelevantAnswer(message, updatedHistory, intent);
       reply = result.answer;
@@ -151,16 +162,101 @@ app.post("/api/chat", async (req: Request<{}, {}, ChatRequestBody>, res: Respons
       break;
     }
 
+    case "onboarding":
+      reply = getOnboardingTemplate().answer;
+      relatedQuestions = getRelatedQuestions("onboarding");
+      updatedHistory.push({ role: "system", content: "intent:onboarding" });
+      break;
+
+    case "cancel":
+      reply = getCancelTemplate().answer;
+      relatedQuestions = getRelatedQuestions("cancel");
+      updatedHistory.push({ role: "system", content: "intent:cancel" });
+      break;
+
+    case "industry":
+      reply = getIndustryTemplate().answer;
+      relatedQuestions = getRelatedQuestions("industry");
+      updatedHistory.push({ role: "system", content: "intent:industry" });
+      break;
+
+    case "overview":
+      reply = getOverviewTemplate().answer;
+      relatedQuestions = getRelatedQuestions("overview");
+      updatedHistory.push({ role: "system", content: "intent:overview" });
+      break;
+
+    case "recommendation": {
+      if (!introDone) {
+        reply = "ご利用目的に応じて最適なプランをご提案できます。いくつか質問させていただいてもよろしいですか？";
+        updatedHistory.push({ role: "system", content: "recommendation-intro" });
+        updatedHistory.push({ role: "system", content: "intent:recommendation" });
+      } else {
+        const extracted = await extractTeamInfo(message);
+        const lastTeam = history.find((h) => h.role === "system" && h.content.startsWith("team:"))?.content.split(":")[1] || null;
+        const lastPurpose = history.find((h) => h.role === "system" && h.content.startsWith("purpose:"))?.content.split(":")[1] || null;
+
+        const team = extracted?.teamSize || lastTeam;
+        const purpose = extracted?.purpose || lastPurpose;
+
+        if (!team && !purpose) {
+          reply = [
+            "恐れ入ります、以下のような形式でご回答いただけますか？",
+            "・ご利用予定のチーム人数",
+            "・主な利用目的（例：FAQ対応、社内ナレッジ、顧客サポート）",
+          ].join("\n");
+        } else if (team && !purpose) {
+          updatedHistory.push({ role: "system", content: `team:${team}` });
+          reply = "ありがとうございます。あわせて主なご利用目的も教えていただけますか？";
+        } else if (!team && purpose) {
+          updatedHistory.push({ role: "system", content: `purpose:${purpose}` });
+          reply = "ありがとうございます。あわせてチームのご利用人数も教えていただけますか？";
+        } else {
+          updatedHistory.push({ role: "system", content: `team:${team}` });
+          updatedHistory.push({ role: "system", content: `purpose:${purpose}` });
+
+          const result = await getRelevantAnswer(`${team}人で${purpose}のために使いたい`, updatedHistory, "recommendation");
+          reply = result.answer;
+          relatedQuestions = result.relatedQuestions;
+        }
+      }
+      break;
+    }
+
+    case "difference":
+      reply = getDifferenceTemplate().answer;
+      relatedQuestions = getRelatedQuestions("difference");
+      updatedHistory.push({ role: "system", content: "intent:difference" });
+      break;
+
+    case "support":
+      reply = getSupportTemplate().answer;
+      relatedQuestions = getRelatedQuestions("support");
+      updatedHistory.push({ role: "system", content: "intent:support" });
+      break;
+
     case "login":
       reply = getLoginIssueTemplate().answer;
       relatedQuestions = getRelatedQuestions("login");
       updatedHistory.push({ role: "system", content: "intent:login" });
       break;
 
-    case "difference":
-      reply = getDifferenceTemplate().answer;
-      relatedQuestions = getRelatedQuestions("difference");
-      updatedHistory.push({ role: "system", content: "intent:difference" });
+    case "security":
+      reply = getSecurityTemplate().answer;
+      relatedQuestions = getRelatedQuestions("security");
+      updatedHistory.push({ role: "system", content: "intent:security" });
+      break;
+
+    case "integration":
+      reply = getIntegrationTemplate().answer;
+      relatedQuestions = getRelatedQuestions("integration");
+      updatedHistory.push({ role: "system", content: "intent:integration" });
+      break;
+
+    case "compliance":
+      reply = getComplianceTemplate().answer;
+      relatedQuestions = getRelatedQuestions("compliance");
+      updatedHistory.push({ role: "system", content: "intent:compliance" });
       break;
 
     case "billing":
@@ -169,19 +265,11 @@ app.post("/api/chat", async (req: Request<{}, {}, ChatRequestBody>, res: Respons
       updatedHistory.push({ role: "system", content: "intent:billing" });
       break;
 
-    case "onboarding":
-      reply = getOnboardingTemplate().answer;
-      relatedQuestions = getRelatedQuestions("onboarding");
-      break;
-
-    case "cancel":
-      reply = getCancelTemplate().answer;
-      relatedQuestions = getRelatedQuestions("cancel");
-      break;
-
-    case "contract":
-      reply = getContractTemplate().answer;
-      relatedQuestions = getRelatedQuestions("contract");
+    case "smalltalk": 
+      const answer = await getSmalltalkResponse(message);
+      reply = answer;
+      relatedQuestions = getRelatedQuestions("smalltalk");
+      updatedHistory.push({ role: "system", content: "intent:smalltalk" });
       break;
 
     case "greeting":
@@ -204,6 +292,7 @@ app.post("/api/chat", async (req: Request<{}, {}, ChatRequestBody>, res: Respons
       reply = "ご質問の意図をもう少し詳しくお聞きしてもよろしいでしょうか？";
       relatedQuestions = getRelatedQuestions("faq");
       break;
+
   }
 
   updatedHistory.push({ role: "assistant", content: reply });

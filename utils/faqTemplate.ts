@@ -3,6 +3,46 @@ export interface AnswerTemplate {
   relatedQuestions: string[];
 }
 
+/*以下整理のため削除不可
+'テスト': getLayoutTestTemplate(),
+'契約期間': getContractTemplate(),
+'無料で使えますか': getPricingTemplate(),
+'料金はいくら': getPricingTemplate(),
+'料金プランの違い': getPricingTemplate(),
+'導入ステップ': getOnboardingTemplate(),
+'解約': getCancelTemplate(),
+'どの業界': getIndustryTemplate(),
+'Discovery AIとは': getOverviewTemplate(),
+'どんな機能': getFunctionTemplate(),
+'Starterプラン': getRecommendationStarterTemplate(),
+'Proプラン': getRecommendationGrowthTemplate(),
+'Enterpriseプラン': getRecommendationEnterpriseTemplate(),
+'ChatGPTとの違い': getDifferenceTemplate(),
+'問い合わせ': getSupportTemplate(),🙆
+'ログインできない': getLoginIssueTemplate(),
+'セキュリティ': getSecurityTemplate(),🙆
+'連携': getIntegrationTemplate(),🙆
+'法令遵守': getComplianceTemplate(),🙆
+'料金の支払いサイクル': getBillingTemplate(),
+*/
+
+
+export function getLayoutTestTemplate(): AnswerTemplate {
+  return {
+    answer: `
+これはレイアウトテスト用のテンプレートです。
+
+<p class="mb-0 leading-snug">テスト段落1</p>
+<ul class="mt-[-18px] mb-0">
+  <li class="leading-relaxed mt-[-15px]">リスト項目1</li>
+  <li class="leading-relaxed mt-[-15px]">リスト項目2</li>
+</ul>
+<p class="mb-0 leading-snug">テスト段落2</p>
+`,
+    relatedQuestions: [],
+  };
+}
+
 export function getContractTemplate(): AnswerTemplate {
   return {
     answer: `
@@ -70,7 +110,7 @@ export function getPricingTemplate(): AnswerTemplate {
 export function getOnboardingTemplate(): AnswerTemplate {
   return {
     answer: `
-導入のステップはとてもシンプルです！
+導入のステップはとてもシンプルです。
 
 1. 📩 フォームからお問い合わせ or トライアル申し込み  
 2. 👥 担当よりご連絡、ヒアリングとご提案  
@@ -104,33 +144,25 @@ export function getCancelTemplate(): AnswerTemplate {
   };
 }
 
-export function getLayoutTestTemplate(): AnswerTemplate {
-  return {
-    answer: `
-これはレイアウトテスト用のテンプレートです。
-
-<p class="mb-0 leading-snug">テスト段落1</p>
-<ul class="mt-[-18px] mb-0">
-  <li class="leading-relaxed mt-[-15px]">リスト項目1</li>
-  <li class="leading-relaxed mt-[-15px]">リスト項目2</li>
-</ul>
-<p class="mb-0 leading-snug">テスト段落2</p>
-`,
-    relatedQuestions: [],
-  };
-}
-
 export function getIndustryTemplate(): AnswerTemplate {
   return {
     answer: `
-Discovery AIは様々な業界でご活用いただいています。
+Discovery AIは、さまざまな業界・業種でご活用いただいています。
 
-- 消費財・飲料・食品メーカー（例：パン、ドリンクなど）  
-- 化粧品・日用品ブランド  
-- 医療・製薬企業  
-- B2B SaaS・IT企業  
+---
 
-業種や業界に応じた事例や活用方法もご紹介可能です。お気軽にご相談ください。`,
+🏭 **主な導入業界：**
+
+- 消費財・食品・飲料メーカー（例：パン、ドリンクなど）  
+- 化粧品・ヘルスケア・日用品ブランド  
+- 医療・製薬・ヘルステック領域  
+- B2B SaaS・ITベンダー・スタートアップ  
+- 地方自治体・行政関連（実証実験含む）
+
+---
+
+業種や活用シーンに応じて、導入事例やユースケースをご紹介可能です。  
+お気軽にご相談ください！`,
     relatedQuestions: [
       "どの業界で使われていますか？",
       "食品業界の導入事例は？",
@@ -139,9 +171,6 @@ Discovery AIは様々な業界でご活用いただいています。
   };
 }
 
-// ---------------------
-// 要約まとめ 用テンプレートマッチ関数
-// ---------------------
 export function getOverviewTemplate(): AnswerTemplate {
   return {
     answer: `
@@ -162,18 +191,28 @@ Discovery AIとは？「顧客発見」特化型マーケティングAI：
   };
 }
 
-
 export function getFunctionTemplate(): AnswerTemplate {
   return {
     answer: `
-Discovery AIには以下のような主な機能があります：
+Discovery AIでは、以下のような主要機能をご利用いただけます：
 
-- 各SNSやECのレビュー、コミュニティデータを分析
-- 単語単位ではなく、文脈・分位を読み取った分析
-- 顧客インサイトレポート
-- 分析結果ビジュアライゼーション  他 
+---
 
-🎯 導入目的に応じて、最適な使い方をご提案できます。お気軽にお尋ねください！`,
+🔍 **クチコミデータ自動収集**  
+SNSやECサイト、クチコミメディアなどからブランドに関する発言を自動で収集します。
+
+🧠 **意味単位でのAI分析**  
+単語ではなく「文脈」や「意図」を読み取る高度な分析が可能です。
+
+📊 **インサイトレポート生成**  
+AIが注目すべきトレンドや顧客の声を可視化したレポートを自動生成します。
+
+🎨 **ビジュアライゼーション機能**  
+データの可視化（グラフ・キーワードクラスタなど）をサポートします。
+
+---
+
+導入目的に応じて、柔軟なカスタマイズも可能です。お気軽にご相談ください！`,
     relatedQuestions: [
       "どんな機能がありますか？",
       "自動分類はできますか？",
@@ -245,19 +284,25 @@ export function getRecommendationEnterpriseTemplate(): AnswerTemplate {
 export function getDifferenceTemplate(): AnswerTemplate {
   return {
     answer: `
-**Discovery AIとChat GPTの主な違いは、用途と機能にあります。**
+**Discovery AI** と **ChatGPT** は目的や活用領域が異なります。
 
-#### ✅ Discovery AI は：
-- 主に企業向けのデータ分析やマーケティング支援を目的としたツール  
-- ブランド分析やVOC（顧客の声）分析に特化  
-- 複数のプランがあり、企業の規模やニーズに応じて選択可能  
-- 初回限定で7日間の無料トライアルあり
+---
 
-#### 💬 Chat GPT は：
-- 自然言語処理を用いた対話型AI  
-- 幅広い質問や会話に対応可能  
-- 一般的な質問応答や文章生成に強み  
-`,
+🧠 **Discovery AI** はこんなサービスです：
+- ブランド向けの **マーケティング支援AI**  
+- SNSやクチコミデータの収集・分析・レポーティングに特化  
+- 意味理解・業種特化型で企業活用を前提とした設計  
+- 企業規模や目的に応じたプランを選択可能  
+
+💬 **ChatGPT** は：
+- 一般的な **対話型AI（汎用）**  
+- 質問応答・文章生成・学習補助などに幅広く対応  
+- 会話体験やアイデア出しなどに活用されることが多い  
+
+---
+
+どちらが適しているかは **目的によって異なります**。  
+ご検討段階でもお気軽にお問い合わせください！`,
     relatedQuestions: [
       "ChatGPTとの違いは？",
       "Discovery AIの強みは？",
@@ -266,19 +311,25 @@ export function getDifferenceTemplate(): AnswerTemplate {
   };
 }
 
-export function getSupportTemplate(): AnswerTemplate {
+export function getSupportTemplate(): TemplateAnswer {
   return {
-    answer: `
-お問い合わせは以下の方法で承っております。
+    answer: `サポートに関するご質問ですね。以下をご確認ください。
 
-- 📩 メール：**support@discovery-ai.jp**  
-- 💬 お問い合わせフォーム：[こちら](https://ai.elife.co.jp/contact)
+📩 **メールでのお問い合わせ**  
+support@discovery-ai.jp
 
-お困りの際は、いつでもご連絡くださいませ。`,
+💬 **お問い合わせフォーム**  
+[お問い合わせはこちら](https://ai.elife.co.jp/contact)
+
+🕐 **サポート対応時間**  
+平日 10:00〜18:00（土日祝を除く）
+
+操作方法のご案内、技術的なトラブル、導入相談など、幅広く対応しております。  
+お気軽にご相談ください。`,
     relatedQuestions: [
-      "問い合わせ方法を教えてください",
-      "メールでも問い合わせできますか？",
-      "サポート対応時間は？",
+      "電話でのサポートはありますか？",
+      "サポートの受付時間を教えてください",
+      "問い合わせフォームはどこですか？",
     ],
   };
 }
@@ -300,7 +351,7 @@ export function getLoginIssueTemplate(): AnswerTemplate {
 
 4. **それでも解決しない場合は、お手数ですがサポートまでご連絡ください**  
    - メール：support@discovery-ai.jp  
-   - お問い合わせフォーム：[こちら](https://ai.elife.co.jp/contact)
+   - [お問い合わせはこちら](https://ai.elife.co.jp/contact)
 `,
     relatedQuestions: [
       "ログインできません",
@@ -310,30 +361,98 @@ export function getLoginIssueTemplate(): AnswerTemplate {
   };
 }
 
-// ---------------------
-// FAQ 用テンプレートマッチ関数
-// ---------------------
+export function getSecurityTemplate(): TemplateAnswer {
+  return {
+    answer: `セキュリティ対策についてのご質問ですね。以下をご確認ください。
+
+🔐 **通信の暗号化**  
+すべての通信はSSL/TLSにより暗号化されています。
+
+🧱 **アクセス制限とログ管理**  
+管理画面やAPIにはIP制限・認証機構があり、アクセスログを常時監視しています。
+
+🧪 **外部監査・脆弱性対応**  
+定期的にセキュリティ診断を実施し、脆弱性が見つかった場合は迅速に対処しています。
+
+ご不明点や要件がある場合は、お気軽にご相談ください。`,
+    relatedQuestions: [
+      "セキュリティ認証には対応していますか？",
+      "暗号化通信は行っていますか？",
+      "データ保管場所はどこですか？",
+    ],
+  };
+}
+
+export function getIntegrationTemplate(): TemplateAnswer {
+  return {
+    answer: `他システムとの連携についてのご質問ですね。以下をご確認ください。
+
+🔌 **外部サービスとの連携**  
+Salesforce、HubSpot、Slack、Google Analytics などと柔軟に連携可能です。
+
+🧩 **APIによる拡張**  
+RESTful API を提供しており、外部システムとのデータ連携が可能です。
+
+⚙️ **Webhook・通知機能**  
+イベント発生時に外部サービスへ通知を送るWebhook機能を備えています。
+
+ご希望のシステムがある場合は、個別にご相談いただければ詳細をご案内いたします。`,
+    relatedQuestions: [
+      "HubSpotと連携できますか？",
+      "APIの提供はありますか？",
+      "外部ツールとの連携事例を教えてください",
+    ],
+  };
+}
+
+export function getComplianceTemplate(): TemplateAnswer {
+  return {
+    answer: `コンプライアンス・法令対応についてのご質問ですね。以下をご確認ください。
+
+📄 **プライバシーポリシーと利用規約**  
+個人情報保護方針・利用規約を明確に定めており、法令順守を徹底しています。
+
+🛡️ **各種法令への対応**  
+日本国内の個人情報保護法（改正含む）や、必要に応じてGDPR対応も検討可能です。
+
+📝 **契約書対応・NDA**  
+ご希望に応じて、秘密保持契約（NDA）や個別契約書の締結にも対応しております。
+
+ご利用企業の法務・コンプライアンス部門とも連携しながら導入を進められますので、ご安心ください。`,
+    relatedQuestions: [
+      "個人情報保護法に対応していますか？",
+      "GDPRには対応していますか？",
+      "NDAを結ぶことはできますか？",
+    ],
+  };
+}
 
 export function getFaqTemplate(question: string): AnswerTemplate | null {
   const map: Record<string, AnswerTemplate> = {
+    'テスト': getLayoutTestTemplate(),
+    '契約期間': getContractTemplate(),
     '無料で使えますか': getPricingTemplate(),
     '料金はいくら': getPricingTemplate(),
     '料金プランの違い': getPricingTemplate(),
-    '契約期間': getContractTemplate(),
-    '解約': getCancelTemplate(),
     '導入ステップ': getOnboardingTemplate(),
-    'ログインできない': getLoginIssueTemplate(),
-    '問い合わせ': getSupportTemplate(),
+    '解約': getCancelTemplate(),
     'どの業界': getIndustryTemplate(),
+    'Discovery AIとは': getOverviewTemplate(),
     'どんな機能': getFunctionTemplate(),
-  };  
+    'Starterプラン': getRecommendationStarterTemplate(),
+    'Proプラン': getRecommendationGrowthTemplate(),
+    'Enterpriseプラン': getRecommendationEnterpriseTemplate(),
+    'ChatGPTとの違い': getDifferenceTemplate(),
+    '問い合わせ': getSupportTemplate(),
+    'ログインできない': getLoginIssueTemplate(),
+    'セキュリティ': getSecurityTemplate(),
+    '連携': getIntegrationTemplate(),
+    '法令遵守': getComplianceTemplate(),
+    '料金の支払いサイクル': getBillingTemplate(),
+  };
   const matched = Object.keys(map).find(key => question.includes(key));
   return matched ? map[matched] : null;
 }
-
-// ---------------------
-// Billing 用テンプレート
-// ---------------------
 
 export function getBillingTemplate(): AnswerTemplate {
   return {

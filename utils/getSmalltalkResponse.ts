@@ -25,6 +25,14 @@ const getSmalltalkResponse = (message: string): string => {
     return options[Math.floor(Math.random() * options.length)];
   }
 
+  if (lower.includes('ありがとう') || lower.includes('助かる')) {
+    const options = [
+      'お役に立てて嬉しいです。何か他に気になることがあれば、遠慮なくどうぞ。',
+      'こちらこそ、ありがとうございます。引き続きサポートいたしますね。',
+    ];
+    return options[Math.floor(Math.random() * options.length)];
+  }
+
   // fallback（少し踏み込んだ提案付き）
   const fallback = [
     'ありがとうございます。もしよければ、今気になっていることや課題をお聞かせいただけますか？',
