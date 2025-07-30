@@ -311,7 +311,7 @@ export function getDifferenceTemplate(): AnswerTemplate {
   };
 }
 
-export function getSupportTemplate(): TemplateAnswer {
+export function getSupportTemplate(): AnswerTemplate {
   return {
     answer: `サポートに関するご質問ですね。以下をご確認ください。
 
@@ -361,7 +361,7 @@ export function getLoginIssueTemplate(): AnswerTemplate {
   };
 }
 
-export function getSecurityTemplate(): TemplateAnswer {
+export function getSecurityTemplate(): AnswerTemplate {
   return {
     answer: `セキュリティ対策についてのご質問ですね。以下をご確認ください。
 
@@ -383,7 +383,7 @@ export function getSecurityTemplate(): TemplateAnswer {
   };
 }
 
-export function getIntegrationTemplate(): TemplateAnswer {
+export function getIntegrationTemplate(): AnswerTemplate {
   return {
     answer: `他システムとの連携についてのご質問ですね。以下をご確認ください。
 
@@ -405,7 +405,7 @@ RESTful API を提供しており、外部システムとのデータ連携が�
   };
 }
 
-export function getComplianceTemplate(): TemplateAnswer {
+export function getComplianceTemplate(): AnswerTemplate {
   return {
     answer: `コンプライアンス・法令対応についてのご質問ですね。以下をご確認ください。
 
