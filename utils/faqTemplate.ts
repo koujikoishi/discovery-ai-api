@@ -104,7 +104,7 @@ export function getPricingTemplate(): AnswerTemplate {
 ---
 
 💬 ご利用目的やチーム人数に応じて、最適なプランをご提案します！  
-💡 [料金プランの詳細を見る](https://ai.elife.co.jp/plan)
+ [料金プランの詳細を見る](https://ai.elife.co.jp/plan)
 `,
     relatedQuestions: [
       "無料で使えますか？",
@@ -199,10 +199,10 @@ Discovery AIは「顧客発見」に特化したマーケティングAIです。
 
 🎯 ブランド戦略や商品開発、広告企画など様々な場面でご活用いただけます。
 
-🔗 [Discovery AIの特長を見る](https://ai.elife.co.jp/feature)
+[Discovery AIの特長を見る](https://ai.elife.co.jp/feature)
 
 📢 本サービス「Discovery AI」は、株式会社イーライフ（eLife Inc.）が提供しています。  
-🔗 [運営会社についてはこちら](https://www.elife.co.jp)
+[運営会社についてはこちら](https://www.elife.co.jp)
 `,
     relatedQuestions: [
       "Discovery AIとは何ですか？",
@@ -231,7 +231,7 @@ Discovery AIでは、以下のような主要機能をご利用いただけま�
 
 🛠️ 導入目的や業務フローに応じて、柔軟なカスタマイズも可能です。
 
-🔗 [機能の詳細はこちら](https://ai.elife.co.jp/feature)
+[機能の詳細はこちら](https://ai.elife.co.jp/feature)
 `,
     relatedQuestions: [
       "どんな機能がありますか？",
@@ -345,7 +345,7 @@ export function getSupportTemplate(): AnswerTemplate {
 🕐 **サポート対応時間**  
 - 平日 10:00〜18:00（土日祝を除く）
 
-🔗 [FAQ（よくあるご質問）もあわせてご覧ください](https://ai.elife.co.jp/faq)
+[FAQ（よくあるご質問）もあわせてご覧ください](https://ai.elife.co.jp/faq)
 `,
     relatedQuestions: [
       "電話でのサポートはありますか？",
@@ -358,21 +358,27 @@ export function getSupportTemplate(): AnswerTemplate {
 export function getLoginIssueTemplate(): AnswerTemplate {
   return {
     answer: `
-ログインできない場合の対処方法をご案内します。
+**ログインできない場合の対処法**
+
+以下をご確認ください：
 
 ---
+**🔐 メールアドレス・パスワードの入力内容**  
+- 入力ミスがないか  
+- 全角/半角、大文字/小文字の区別
 
-1. **メールアドレス・パスワードの入力内容をご確認ください**  
-   入力ミスがないか、全角/半角、大文字/小文字にご注意ください。
+---
+**🔑 パスワードをお忘れの場合**  
+- ログイン画面の「パスワードを忘れた方はこちら」から再設定が可能です
 
-2. **パスワードをお忘れの方は、再設定をご利用ください**  
-   ログイン画面の「パスワードを忘れた方はこちら」から再設定が可能です。
+---
+**🌐 キャッシュとCookieの削除**  
+- ブラウザのキャッシュやCookieを削除して再試行してください
 
-3. **ブラウザのキャッシュやCookieを削除して再試行してください**
-
-4. **それでも解決しない場合は、お手数ですがサポートまでご連絡ください**  
-   - メール：support@discovery-ai.jp  
-   - [お問い合わせはこちら](https://ai.elife.co.jp/contact)
+---
+**📩 サポートへのご連絡**  
+- メール：support@discovery-ai.jp  
+- [お問い合わせはこちら](https://ai.elife.co.jp/contact)
 `,
     relatedQuestions: [
       "ログインできません",

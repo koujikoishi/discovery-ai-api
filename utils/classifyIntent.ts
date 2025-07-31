@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import { intentKeywords } from "./intentKeywords.js"; // ✅ 拡張子削除済み
+import { intentKeywords } from "./intentKeywords.js";
 
 const systemPrompt = `
 あなたは入力文の意図を8つのカテゴリから1つだけ選んで分類するAIです。
@@ -37,11 +37,12 @@ const nonBusinessPattern = /(ラーメン|焼肉|カレー|うどん|パンケ�
 export async function classifyIntent(userInput: string): Promise<string> {
   const lowerInput = userInput.toLowerCase().trim();
 
+  // 挨拶・雑談・非ビジネス判定
   if (greetingPattern.test(userInput)) return "greeting";
   if (smalltalkKeywords.some((kw) => lowerInput.includes(kw))) return "smalltalk";
   if (nonBusinessPattern.test(userInput)) return "other";
 
-  // ✅ intentKeywordsによるローカルマッチ（追加済み）
+  // intentKeywordsによるローカルマッチ
   for (const [intent, keywords] of Object.entries(intentKeywords)) {
     if (keywords.some((kw) => lowerInput.includes(kw))) {
       console.log(`✅ ローカルintentマッチ: ${intent}`);
@@ -49,6 +50,7 @@ export async function classifyIntent(userInput: string): Promise<string> {
     }
   }
 
+  // OpenAI API による分類
   try {
     console.log("🧠 fetchでintent分類を呼び出し中...");
 
@@ -68,13 +70,21 @@ export async function classifyIntent(userInput: string): Promise<string> {
       }),
     });
 
-    const data = await response.json();
-    const category = data.choices?.[0]?.message?.content?.trim().toLowerCase();
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("❌ OpenAI APIエラー:", response.status, errorText);
+      return "other";
+    }
 
+    const data = await response.json();
+    console.log("🧪 OpenAI応答:", data);
+
+    const category = data.choices?.[0]?.message?.content?.trim().toLowerCase();
     const validCategories = [
       "faq", "pricing", "onboarding", "recommendation",
       "cancel", "function", "greeting", "smalltalk", "other"
     ];
+
     return validCategories.includes(category) ? category : "other";
 
   } catch (err: any) {
