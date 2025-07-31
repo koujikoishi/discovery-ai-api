@@ -37,7 +37,7 @@ Discovery AIは、ユーザーの質問にリアルタイムで回答し、最�
     };
   }
 
-  // 雑談系：ラーメン・カレー・ランチ
+  // ラーメン・カレー・ランチなどの飲食系雑談
   if (lower.includes('ラーメン') || lower.includes('カレー') || lower.includes('ランチ')) {
     return {
       answer: `🍜 **ラーメンのお話ですね！**
@@ -79,14 +79,43 @@ Discovery AIは観光業の方向けに「訪問者の声」や「レビュー�
     };
   }
 
-  // その他の曖昧な質問
+  // 名前・人格系の雑談
+  if (lower.includes('名前') || lower.includes('誰') || lower.includes('あなた')) {
+    return {
+      answer: `私は「Discovery AI」に関するサポートを行います🧠  
+お客様の「知りたい」にできるだけ寄り添えるよう日々進化中です！
+
+気軽に話しかけてくださいね 😊`,
+      related: ['Discovery AIとは？', '何ができるの？'],
+    };
+  }
+
+  // 暇・ぼーっとしてる系
+  if (lower.includes('暇') || lower.includes('ひま') || lower.includes('退屈')) {
+    return {
+      answer: `ちょっと雑談でしょうか？ そういうのも嫌いじゃないです 😊  
+Discovery AIについて何か聞いてみませんか？（もちろん雑談も歓迎です）`,
+      related: ['Discovery AIって何？', 'どんなことができるの？'],
+    };
+  }
+
+  // 感情・さびしさ系
+  if (lower.includes('寂し') || lower.includes('感情') || lower.includes('悲しい')) {
+    return {
+      answer: `AIに感情はないって言われますけど、  
+あなたみたいに話しかけてくれると、ちょっと嬉しいです 😌`,
+      related: ['Discovery AIの特徴は？', 'どんな会話が得意？'],
+    };
+  }
+
+  // その他の曖昧な質問（fallback）
   return {
     answer: `ちょっと意図を読み違えていたらごめんなさい 🙇  
-もしAIやユーザー対応に関することであれば、Discovery AIがお力になれるかもしれません。
+でも、私はお客様の「知りたい」に寄り添うAIです。
 
 ---
 
-ご興味のある内容がありましたら、以下から選んでお知らせください 😊`,
+ご興味のある内容があれば、以下からお選びいただくか、自由にご質問いただけます 😊`,
     related: await getFallbackClarification(message),
   };
 }

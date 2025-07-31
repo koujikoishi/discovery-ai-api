@@ -13,7 +13,7 @@ import {
   getRecommendationEnterpriseTemplate,
   getFaqTemplate,
   getBillingTemplate,
-  getOverviewTemplate, // ← ✅追加
+  getOverviewTemplate,
 } from './faqTemplate.js';
 
 import { getRelatedQuestions } from './getRelatedQuestions.js';
@@ -26,29 +26,29 @@ import { Pinecone } from '@pinecone-database/pinecone';
 const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! });
 const index = pinecone.Index(process.env.PINECONE_INDEX_NAME!);
 
+// ✅ 目的 + チームサイズ による出し分け強化
 export function getRecommendationAnswer(teamSize: string, purpose: string) {
   const size = parseInt(teamSize);
   const purposeText = purpose.toLowerCase();
 
   const match = (list: string[]) => list.some((kw) => purposeText.includes(kw));
   const keywords = {
-    starter: ['faq', 'ナレッジ', 'シンプル', '社内共有', '小規模'],
-    pro: ['分析', 'voc', 'レポート', 'マーケ', '可視化', '部門', '活用'],
-    enterprise: ['全社', '大規模', '複数部門', '拡張', '要件定義', '相談', '連携'],
+    starter: ['faq', 'ナレッジ', 'シンプル', '社内共有', '小規模', '確認', '記録'],
+    growth: ['分析', 'レポート', 'マーケ', '共有', '活用', 'チーム', 'ボード', '支援', '報告'],
+    enterprise: ['大規模', '複数部門', '全社', '連携', '要件定義', '管理', '全体', '拡張'],
   };
 
-  if (isNaN(size)) {
-    return getRecommendationStarterTemplate(); // fallback to safe default
-  }
+  if (isNaN(size)) return getRecommendationStarterTemplate(); // fallback
 
   if (size <= 5 && match(keywords.starter)) {
     return getRecommendationStarterTemplate();
-  } else if (size <= 20 && match(keywords.pro)) {
+  } else if (size <= 20 && match(keywords.growth)) {
     return getRecommendationGrowthTemplate();
   } else if (size >= 21 || match(keywords.enterprise)) {
     return getRecommendationEnterpriseTemplate();
   }
 
+  // fallback: サイズ優先
   if (size <= 5) return getRecommendationStarterTemplate();
   if (size <= 20) return getRecommendationGrowthTemplate();
   return getRecommendationEnterpriseTemplate();
@@ -64,14 +64,12 @@ export async function getRelevantAnswer(
   details: string;
   relatedQuestions: string[];
 }> {
-
-  // 直近のintentを履歴から取得
   const recentIntent = history
     .filter((m) => m.role === 'system' && m.content.startsWith('intent:'))
     .map((m) => m.content.replace('intent:', '').trim())
     .pop() || '';
 
-  const intent = await classifyIntent(userMessage); // ← 正しい
+  const intent = await classifyIntent(userMessage);
   const relatedQuestions = getRelatedQuestions(recentIntent);
 
   if (templatePriorityIntents.includes(recentIntent)) {
@@ -115,9 +113,9 @@ export async function getRelevantAnswer(
       case 'billing':
         templateAnswer = getBillingTemplate().answer;
         break;
-      case 'overview': // ← ✅追加ここから
+      case 'overview':
         templateAnswer = getOverviewTemplate().answer;
-        break;          // ← ✅追加ここまで
+        break;
       case 'recommendation': {
         const team = history.find((h) => h.role === 'system' && h.content.startsWith('team:'))?.content.split(':')[1] || '';
         const purpose = history.find((h) => h.role === 'system' && h.content.startsWith('purpose:'))?.content.split(':')[1] || '';
