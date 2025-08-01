@@ -1,11 +1,10 @@
-// utils/getRelevantAnswer.ts
+// getRelevantAnswer.ts（構造整理・ログ統一・意図テンプレ優先ロジック＋fallback）
 
 import {
   getPricingTemplate,
   getContractTemplate,
   getCancelTemplate,
   getOnboardingTemplate,
-  getSupportTemplate,
   getFunctionTemplate,
   getIndustryTemplate,
   getRecommendationStarterTemplate,
@@ -14,7 +13,8 @@ import {
   getFaqTemplate,
   getBillingTemplate,
   getOverviewTemplate,
-} from './faqTemplate.js';
+  getFreePlanTemplate,
+} from './faqTemplate';
 
 import { getRelatedQuestions } from './getRelatedQuestions.js';
 import { templatePriorityIntents } from './templateIntents.js';
@@ -26,32 +26,63 @@ import { Pinecone } from '@pinecone-database/pinecone';
 const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! });
 const index = pinecone.Index(process.env.PINECONE_INDEX_NAME!);
 
-// ✅ 目的 + チームサイズ による出し分け強化
-export function getRecommendationAnswer(teamSize: string, purpose: string) {
+function getRecommendationAnswer(teamSize: string, purpose: string) {
   const size = parseInt(teamSize);
-  const purposeText = purpose.toLowerCase();
-
-  const match = (list: string[]) => list.some((kw) => purposeText.includes(kw));
+  const match = (list: string[]) => list.some((kw) => purpose.includes(kw));
   const keywords = {
     starter: ['faq', 'ナレッジ', 'シンプル', '社内共有', '小規模', '確認', '記録'],
     growth: ['分析', 'レポート', 'マーケ', '共有', '活用', 'チーム', 'ボード', '支援', '報告'],
     enterprise: ['大規模', '複数部門', '全社', '連携', '要件定義', '管理', '全体', '拡張'],
   };
 
-  if (isNaN(size)) return getRecommendationStarterTemplate(); // fallback
-
-  if (size <= 5 && match(keywords.starter)) {
-    return getRecommendationStarterTemplate();
-  } else if (size <= 20 && match(keywords.growth)) {
-    return getRecommendationGrowthTemplate();
-  } else if (size >= 21 || match(keywords.enterprise)) {
-    return getRecommendationEnterpriseTemplate();
-  }
-
-  // fallback: サイズ優先
+  if (isNaN(size)) return getRecommendationStarterTemplate();
+  if (size <= 5 && match(keywords.starter)) return getRecommendationStarterTemplate();
+  if (size <= 20 && match(keywords.growth)) return getRecommendationGrowthTemplate();
+  if (size >= 21 || match(keywords.enterprise)) return getRecommendationEnterpriseTemplate();
   if (size <= 5) return getRecommendationStarterTemplate();
   if (size <= 20) return getRecommendationGrowthTemplate();
   return getRecommendationEnterpriseTemplate();
+}
+
+function looseFaqMatch(userMessage: string): ReturnType<typeof getFaqTemplate> {
+  const normalized = userMessage.toLowerCase().replace(/[？?]/g, '').replace(/。/g, '').replace(/\s+/g, '');
+  const trialKeywords = ['トライアル', '無料で使える', 'お試し', '試せる', '体験版', '使ってみたい'];
+
+  for (const kw of trialKeywords) {
+    if (normalized.includes(kw.replace(/\s+/g, ''))) {
+      console.log('🟢 looseFaqMatch: トライアル系キーワードにヒット:', kw);
+      return getFreePlanTemplate();
+    }
+  }
+
+  const candidates = [
+    userMessage,
+    userMessage.replace('Discovery AIは', ''),
+    userMessage.replace('できますか', 'ですか'),
+    userMessage.replace('無料で使えますか', '無料プランはありますか'),
+    userMessage.replace('使えますか', 'ありますか'),
+    userMessage.replace('無料で利用できますか', '無料プランはありますか'),
+    userMessage.replace('トライアル', '無料プラン'),
+  ];
+
+  for (const msg of candidates) {
+    const result = getFaqTemplate(msg.trim());
+    if (result) {
+      console.log('✅ looseFaqMatch: candidateでマッチ:', msg);
+      return result;
+    }
+  }
+
+  if (normalized.includes('無料')) {
+    console.log('🟢 looseFaqMatch: normalized 無料 にマッチ');
+    return getFreePlanTemplate();
+  }
+  if (normalized.includes('トライアル')) {
+    console.log('🟢 looseFaqMatch: normalized トライアル にマッチ');
+    return getFreePlanTemplate();
+  }
+
+  return null;
 }
 
 export async function getRelevantAnswer(
@@ -64,69 +95,47 @@ export async function getRelevantAnswer(
   details: string;
   relatedQuestions: string[];
 }> {
-  const recentIntent = history
-    .filter((m) => m.role === 'system' && m.content.startsWith('intent:'))
-    .map((m) => m.content.replace('intent:', '').trim())
-    .pop() || '';
+  console.log('\n🔎 getRelevantAnswer(): 開始');
+  console.log('📨 userMessage:', userMessage);
+
+  const recentIntent =
+    history.filter((m) => m.role === 'system' && m.content.startsWith('intent:'))
+      .map((m) => m.content.replace('intent:', '').trim())
+      .pop() || '';
 
   const intent = await classifyIntent(userMessage);
   const relatedQuestions = getRelatedQuestions(recentIntent);
+  console.log('🧠 intent分類:', intent);
+
+  const faqTemplate = looseFaqMatch(userMessage);
+  if (faqTemplate) {
+    const [summary, ...rest] = faqTemplate.answer.split('\n').filter(Boolean);
+    return {
+      answer: faqTemplate.answer,
+      summary,
+      details: rest.join('\n'),
+      relatedQuestions: faqTemplate.relatedQuestions ?? relatedQuestions,
+    };
+  }
 
   if (templatePriorityIntents.includes(recentIntent)) {
-    if (recentIntent === 'faq') {
-      const faqTemplate = getFaqTemplate(userMessage);
-      if (faqTemplate) {
-        const [summary, ...rest] = faqTemplate.answer.split('\n').filter(Boolean);
-        return {
-          answer: faqTemplate.answer,
-          summary,
-          details: rest.join('\n'),
-          relatedQuestions: faqTemplate.relatedQuestions ?? relatedQuestions,
-        };
-      }
-    }
-
     let templateAnswer: string | undefined;
-
     switch (recentIntent) {
-      case 'pricing':
-        templateAnswer = getPricingTemplate().answer;
-        break;
-      case 'contract':
-        templateAnswer = getContractTemplate().answer;
-        break;
-      case 'cancel':
-        templateAnswer = getCancelTemplate().answer;
-        break;
-      case 'onboarding':
-        templateAnswer = getOnboardingTemplate().answer;
-        break;
-      case 'support':
-        templateAnswer = getSupportTemplate().answer;
-        break;
-      case 'function':
-        templateAnswer = getFunctionTemplate().answer;
-        break;
-      case 'industry':
-        templateAnswer = getIndustryTemplate().answer;
-        break;
-      case 'billing':
-        templateAnswer = getBillingTemplate().answer;
-        break;
-      case 'overview':
-        templateAnswer = getOverviewTemplate().answer;
-        break;
+      case 'pricing': templateAnswer = getPricingTemplate().answer; break;
+      case 'contract': templateAnswer = getContractTemplate().answer; break;
+      case 'cancel': templateAnswer = getCancelTemplate().answer; break;
+      case 'onboarding': templateAnswer = getOnboardingTemplate().answer; break;
+      case 'function': templateAnswer = getFunctionTemplate().answer; break;
+      case 'industry': templateAnswer = getIndustryTemplate().answer; break;
+      case 'billing': templateAnswer = getBillingTemplate().answer; break;
+      case 'overview': templateAnswer = getOverviewTemplate().answer; break;
       case 'recommendation': {
         const team = history.find((h) => h.role === 'system' && h.content.startsWith('team:'))?.content.split(':')[1] || '';
         const purpose = history.find((h) => h.role === 'system' && h.content.startsWith('purpose:'))?.content.split(':')[1] || '';
-        const result = getRecommendationAnswer(team, purpose);
-        templateAnswer = result.answer;
+        templateAnswer = getRecommendationAnswer(team, purpose).answer;
         break;
       }
-      default:
-        templateAnswer = undefined;
     }
-
     if (templateAnswer) {
       const [summary, ...rest] = templateAnswer.split('\n').filter(Boolean);
       return {
@@ -139,15 +148,11 @@ export async function getRelevantAnswer(
   }
 
   const userEmbedding = await fetchEmbedding(userMessage);
-  const queryResult = await index.query({
-    vector: userEmbedding,
-    topK: 3,
-    includeMetadata: true,
-  });
-
+  const queryResult = await index.query({ vector: userEmbedding, topK: 3, includeMetadata: true });
   const documents = (queryResult.matches ?? [])
     .map((m) => typeof m.metadata?.text === 'string' ? m.metadata.text : '')
     .filter(Boolean);
+  console.log('📚 類似文書数:', documents.length);
 
   if (documents.length === 0) {
     const fallback = await getFallbackResponse(userMessage);
@@ -176,12 +181,11 @@ export async function getRelevantAnswer(
   const reply = await fetchChatCompletion(messages, 0.2);
   const fullText = typeof reply === 'string' ? reply : JSON.stringify(reply);
   const [summary, ...rest] = fullText.split('\n').filter((l) => l.trim() !== '');
-  const details = rest.join('\n');
 
   return {
-    answer: `${summary}\n\n${details}`,
+    answer: `${summary}\n\n${rest.join('\n')}`,
     summary,
-    details,
+    details: rest.join('\n'),
     relatedQuestions,
   };
 }

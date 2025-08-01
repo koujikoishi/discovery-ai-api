@@ -1,5 +1,4 @@
-// server.ts（改修済み最新版）
-// ✅ recommendation intent時、team + purpose が揃ったら getRelevantAnswer() を呼び出す構成
+// server.ts（ログ強化・全intent含む完全版）
 
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
@@ -26,7 +25,7 @@ import {
   getSupportTemplate,
   getSecurityTemplate,
   getIntegrationTemplate,
-  getComplianceTemplate, // ←★これを追加
+  getComplianceTemplate,
 } from "./utils/faqTemplate.js";
 
 const allowedOrigins = [
@@ -89,6 +88,8 @@ app.post("/api/chat", async (req: Request<{}, {}, ChatRequestBody>, res: Respons
     intent = await classifyIntent(message);
   }
 
+  console.log(`\n🧭️ intent分類結果: ${intent} ← from: ${message}`);
+
   const updatedHistory: ChatMessage[] = [...history];
   let reply = "";
   let relatedQuestions: string[] = [];
@@ -110,6 +111,7 @@ app.post("/api/chat", async (req: Request<{}, {}, ChatRequestBody>, res: Respons
 
   switch (intent) {
     case "recommendation": {
+      console.log("🌀 recommendation intent 処理開始...");
       if (!introDone) {
         reply = "ご利用目的に応じて最適なプランをご提案できます。いくつか質問させていただいてもよろしいですか？";
         updatedHistory.push({ role: "system", content: "recommendation-intro" });
@@ -137,7 +139,7 @@ app.post("/api/chat", async (req: Request<{}, {}, ChatRequestBody>, res: Respons
         } else {
           updatedHistory.push({ role: "system", content: `team:${team}` });
           updatedHistory.push({ role: "system", content: `purpose:${purpose}` });
-
+          console.log("🚀 getRelevantAnswer() 呼び出し開始");
           const result = await getRelevantAnswer(`${team}人で${purpose}のために使いたい`, updatedHistory, "recommendation");
           reply = result.answer;
           relatedQuestions = result.relatedQuestions;
@@ -150,11 +152,12 @@ app.post("/api/chat", async (req: Request<{}, {}, ChatRequestBody>, res: Respons
       reply = getContractTemplate().answer;
       relatedQuestions = getRelatedQuestions("contract");
       updatedHistory.push({ role: "system", content: "intent:contract" });
-    break;
+      break;
 
     case "pricing":
     case "faq":
     case "function": {
+      console.log("🚀 getRelevantAnswer() 呼び出し開始");
       const result = await getRelevantAnswer(message, updatedHistory, intent);
       reply = result.answer;
       relatedQuestions = result.relatedQuestions;
@@ -185,43 +188,6 @@ app.post("/api/chat", async (req: Request<{}, {}, ChatRequestBody>, res: Respons
       relatedQuestions = getRelatedQuestions("overview");
       updatedHistory.push({ role: "system", content: "intent:overview" });
       break;
-
-    case "recommendation": {
-      if (!introDone) {
-        reply = "ご利用目的に応じて最適なプランをご提案できます。いくつか質問させていただいてもよろしいですか？";
-        updatedHistory.push({ role: "system", content: "recommendation-intro" });
-        updatedHistory.push({ role: "system", content: "intent:recommendation" });
-      } else {
-        const extracted = await extractTeamInfo(message);
-        const lastTeam = history.find((h) => h.role === "system" && h.content.startsWith("team:"))?.content.split(":")[1] || null;
-        const lastPurpose = history.find((h) => h.role === "system" && h.content.startsWith("purpose:"))?.content.split(":")[1] || null;
-
-        const team = extracted?.teamSize || lastTeam;
-        const purpose = extracted?.purpose || lastPurpose;
-
-        if (!team && !purpose) {
-          reply = [
-            "恐れ入ります、以下のような形式でご回答いただけますか？",
-            "・ご利用予定のチーム人数",
-            "・主な利用目的（例：FAQ対応、社内ナレッジ、顧客サポート）",
-          ].join("\n");
-        } else if (team && !purpose) {
-          updatedHistory.push({ role: "system", content: `team:${team}` });
-          reply = "ありがとうございます。あわせて主なご利用目的も教えていただけますか？";
-        } else if (!team && purpose) {
-          updatedHistory.push({ role: "system", content: `purpose:${purpose}` });
-          reply = "ありがとうございます。あわせてチームのご利用人数も教えていただけますか？";
-        } else {
-          updatedHistory.push({ role: "system", content: `team:${team}` });
-          updatedHistory.push({ role: "system", content: `purpose:${purpose}` });
-
-          const result = await getRelevantAnswer(`${team}人で${purpose}のために使いたい`, updatedHistory, "recommendation");
-          reply = result.answer;
-          relatedQuestions = result.relatedQuestions;
-        }
-      }
-      break;
-    }
 
     case "difference":
       reply = getDifferenceTemplate().answer;
@@ -259,18 +225,22 @@ app.post("/api/chat", async (req: Request<{}, {}, ChatRequestBody>, res: Respons
       updatedHistory.push({ role: "system", content: "intent:compliance" });
       break;
 
-    case "billing":
-      reply = getBillingTemplate().answer;
-      relatedQuestions = getRelatedQuestions("billing");
+    case "billing": {
+      console.log("🚀 getRelevantAnswer() 呼び出し開始（billing）");
+      const result = await getRelevantAnswer(message, updatedHistory, "billing");
+      reply = result.answer;
+      relatedQuestions = result.relatedQuestions;
       updatedHistory.push({ role: "system", content: "intent:billing" });
       break;
+    }
 
-    case "smalltalk": 
+    case "smalltalk": {
       const answer = await getSmalltalkResponse(message);
       reply = answer;
       relatedQuestions = getRelatedQuestions("smalltalk");
       updatedHistory.push({ role: "system", content: "intent:smalltalk" });
       break;
+    }
 
     case "greeting":
       reply = [
@@ -292,7 +262,6 @@ app.post("/api/chat", async (req: Request<{}, {}, ChatRequestBody>, res: Respons
       reply = "ご質問の意図をもう少し詳しくお聞きしてもよろしいでしょうか？";
       relatedQuestions = getRelatedQuestions("faq");
       break;
-
   }
 
   updatedHistory.push({ role: "assistant", content: reply });
@@ -300,6 +269,6 @@ app.post("/api/chat", async (req: Request<{}, {}, ChatRequestBody>, res: Respons
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 サーバー起動: http://localhost:${PORT}`);
+  console.log(`\n🚀 サーバー起動: http://localhost:${PORT}`);
   console.log("✅ /api/chat エンドポイント待機中");
 });

@@ -1,19 +1,15 @@
-export interface AnswerTemplate {
-  answer: string;
-  relatedQuestions: string[];
-}
+// getRelevantAnswer.ts（ログ強化＋構造整理＋FAQ優先ハイブリッド対応＋FAQ類似一致対応）
 
 /*以下整理のため削除不可
 'テスト': getLayoutTestTemplate(),
 '契約期間': getContractTemplate(),
-'無料で使えますか': getPricingTemplate(),
-'料金はいくら': getPricingTemplate(),
-'料金プランの違い': getPricingTemplate(),
+'料金・費用': getPricingTemplate(),
 '導入ステップ': getOnboardingTemplate(),
 '解約': getCancelTemplate(),
 'どの業界': getIndustryTemplate(),
 'Discovery AIとは': getOverviewTemplate(),
 'どんな機能': getFunctionTemplate(),
+'無料トライアル': getFreePlanTemplate(),
 'Starterプラン': getRecommendationStarterTemplate(),
 'Proプラン': getRecommendationGrowthTemplate(),
 'Enterpriseプラン': getRecommendationEnterpriseTemplate(),
@@ -26,6 +22,59 @@ export interface AnswerTemplate {
 '料金の支払いサイクル': getBillingTemplate(),
 */
 
+export interface AnswerTemplate {
+  answer: string;
+  relatedQuestions: string[];
+}
+
+export function getFaqTemplate(message: string): AnswerTemplate | null {
+  const lower = message.toLowerCase().trim();
+
+  console.log('🧪 getFaqTemplate() 呼び出し:', lower);
+
+  // ✅ 特定キーワードによるテンプレ返却（無料・トライアルなど）
+  if (
+    lower.includes('無料プラン') ||
+    lower.includes('無料で使') ||
+    lower.includes('無料で利用') ||
+    lower.includes('トライアル')
+  ) {
+    console.log('✅ getFaqTemplate(): 無料プラン・トライアル にマッチ → getFreePlanTemplate() を返却');
+    return getFreePlanTemplate();
+  }
+
+  // ✅ 明示的なマッピング（厳密一致）
+const keywordMap: [string[], AnswerTemplate][] = [
+  [['料金', '費用', '価格', 'プラン'], getPricingTemplate()],
+  [['契約期間', '契約'], getContractTemplate()],
+  [['導入', 'ステップ', 'はじめ方'], getOnboardingTemplate()],
+  [['解約'], getCancelTemplate()],
+  [['業界', '業種'], getIndustryTemplate()],
+  [['Discovery AIとは', 'どんなサービス'], getOverviewTemplate()],
+  [['機能'], getFunctionTemplate()],
+  [['無料', 'トライアル'], getFreePlanTemplate()],
+  [['Starter'], getRecommendationStarterTemplate()],
+  [['Pro'], getRecommendationGrowthTemplate()],
+  [['Enterprise'], getRecommendationEnterpriseTemplate()],
+  [['違い', 'ChatGPT'], getDifferenceTemplate()],
+  [['問い合わせ', '連絡'], getSupportTemplate()],
+  [['ログイン'], getLoginIssueTemplate()],
+  [['セキュリティ'], getSecurityTemplate()],
+  [['連携', 'API'], getIntegrationTemplate()],
+  [['法令', 'コンプライアンス'], getComplianceTemplate()],
+  [['課金', '支払い', '請求'], getBillingTemplate()],
+];
+
+for (const [keywords, template] of keywordMap) {
+  if (keywords.some(k => lower.includes(k))) {
+    console.log(`✅ getFaqTemplate(): 柔軟マッチ → 「${keywords.join(', ')}」`);
+    return template;
+  }
+}
+  console.log('⚠️ getFaqTemplate(): 該当テンプレなし');
+  return null; // ✅ これがないと TS2366 発生
+
+}
 
 export function getLayoutTestTemplate(): AnswerTemplate {
   return {
@@ -107,7 +156,8 @@ export function getPricingTemplate(): AnswerTemplate {
  [料金プランの詳細を見る](https://ai.elife.co.jp/plan)
 `,
     relatedQuestions: [
-      "無料で使えますか？",
+      "費用は？",
+      "金額は？",
       "料金プランの違いは？",
       "Enterpriseプランはいくらですか？",
     ],
@@ -237,6 +287,25 @@ Discovery AIでは、以下のような主要機能をご利用いただけま�
       "どんな機能がありますか？",
       "自動分類はできますか？",
       "複数資料から検索できますか？",
+    ],
+  };
+}
+
+export function getFreePlanTemplate(): AnswerTemplate {
+  return {
+    answer: `
+無料プランの提供はございません。
+
+- 初回限定で7日間の無料トライアルをご利用いただけます（クレジットカード登録不要）
+- 有料プランは1ヶ月単位でご契約いただけます
+- ご利用人数や目的に応じて最適なプランをご案内可能です
+
+[料金プランを見る](https://ai.elife.co.jp/plan)
+`,
+    relatedQuestions: [
+      "無料で使えますか？",
+      "無料プランはありますか？",
+      "トライアルはありますか？",
     ],
   };
 }
@@ -452,33 +521,6 @@ export function getComplianceTemplate(): AnswerTemplate {
       "NDAを結ぶことはできますか？",
     ],
   };
-}
-
-export function getFaqTemplate(question: string): AnswerTemplate | null {
-  const map: Record<string, AnswerTemplate> = {
-    'テスト': getLayoutTestTemplate(),
-    '契約期間': getContractTemplate(),
-    '無料で使えますか': getPricingTemplate(),
-    '料金はいくら': getPricingTemplate(),
-    '料金プランの違い': getPricingTemplate(),
-    '導入ステップ': getOnboardingTemplate(),
-    '解約': getCancelTemplate(),
-    'どの業界': getIndustryTemplate(),
-    'Discovery AIとは': getOverviewTemplate(),
-    'どんな機能': getFunctionTemplate(),
-    'Starterプラン': getRecommendationStarterTemplate(),
-    'Proプラン': getRecommendationGrowthTemplate(),
-    'Enterpriseプラン': getRecommendationEnterpriseTemplate(),
-    'ChatGPTとの違い': getDifferenceTemplate(),
-    '問い合わせ': getSupportTemplate(),
-    'ログインできない': getLoginIssueTemplate(),
-    'セキュリティ': getSecurityTemplate(),
-    '連携': getIntegrationTemplate(),
-    '法令遵守': getComplianceTemplate(),
-    '料金の支払いサイクル': getBillingTemplate(),
-  };
-  const matched = Object.keys(map).find(key => question.includes(key));
-  return matched ? map[matched] : null;
 }
 
 export function getBillingTemplate(): AnswerTemplate {
