@@ -14,7 +14,7 @@ import {
   getBillingTemplate,
   getOverviewTemplate,
   getFreePlanTemplate,
-} from './faqTemplate';
+} from './faqTemplate.js';
 
 import { getRelatedQuestions } from './getRelatedQuestions.js';
 import { templatePriorityIntents } from './templateIntents.js';

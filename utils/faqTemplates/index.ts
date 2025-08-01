@@ -13,4 +13,4 @@ export {
   getRecommendationStarterTemplate,
   getRecommendationGrowthTemplate,
   getRecommendationEnterpriseTemplate,
-} from '../faqTemplate';
+} from '../faqTemplate.js';
