@@ -62,7 +62,6 @@ function looseFaqMatch(userMessage: string): { answer: string; relatedQuestions:
   const trialKeywords = ['トライアル', '無料', 'お試し', '体験', '試せる', '使ってみたい'];
   const isTrialQuestion = trialKeywords.some((kw) => normalized.includes(kw));
 
-  // 念のため "サポート" や "分析" などFAQ全般の他意図キーワードが含まれる場合はマッチしない
   const nonTrialContextKeywords = ['サポート', '分析', 'レポート', '機能', '契約', '支払い'];
   const hasNonTrialContext = nonTrialContextKeywords.some((kw) => normalized.includes(kw));
 

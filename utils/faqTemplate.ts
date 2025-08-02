@@ -174,7 +174,11 @@ export function getOnboardingTemplate(): AnswerTemplate {
 3. 🛠️ 初期設定（最短即日〜2営業日）  
 4. ✅ ご利用スタート！
 
-無料トライアルもご用意していますので、お気軽にお試しください！`,
+無料トライアルもご用意していますので、お気軽にお試しください！
+[フォームでご相談](ai.elife.co.jp/contact)
+[スタータープラン 💡トライアル付き](https://app.elifeai.io/ja/auth/sign-up?plan=starter)
+[プロプラン](https://app.elifeai.io/ja/auth/sign-up?plan=pro)
+`,
     relatedQuestions: [
       "導入までにかかる時間は？",
       "トライアルは可能ですか？",
@@ -265,16 +269,25 @@ Discovery AIは「顧客発見」に特化したマーケティングAIです。
 export function getFunctionTemplate(): AnswerTemplate {
   return {
     answer: `
-Discovery AIでは、以下のような主要機能をご利用いただけます：
+Discovery AIは、マーケティング業務を支援するための多機能なツールです。
 
 🔍 **クチコミデータ自動収集**
-- SNSやECサイト、レビューサイトなどからブランドに関する発言を自動で収集
+- SNSやレビュー、アンケートなどからブランドに関する発言を自動収集し、ノイズを除去して整理
 
-🧠 **意味単位でのAI分析**
-- 単語ではなく「文脈」や「意図」を読み取る高度な意味理解エンジンを搭載
+🧠 **AIチャット分析**
+- 単語ではなく「文脈」や「意図」を読み取る高度な意味理解エンジンを搭載、課題を発見
 
 📊 **インサイトレポート生成**
-- 注目すべき顧客の声やトレンドを可視化したレポートを自動生成
+- 注目すべき顧客の声やトレンド、課題を可視化したレポートを自動生成
+
+💡 **ユニークインサイト抽出**
+- 少数派の意見や新しいアイデアを自動で抽出し、商品開発に活用
+
+👷 **リスクアラート**
+- ネガティブな投稿の急増を検知し、早期対応を支援
+
+💬 **多言語対応**
+- 日本語と英語に対応し、今後はさらに多言語対応を予定
 
 🎨 **ビジュアライゼーション機能**
 - グラフやクラスタマップなど、視覚的に理解しやすい形式での出力が可能
@@ -446,7 +459,7 @@ export function getLoginIssueTemplate(): AnswerTemplate {
 
 ---
 **📩 サポートへのご連絡**  
-- メール：support@discovery-ai.jp  
+- メール：ai-support@elife.co.jp
 - [お問い合わせはこちら](https://ai.elife.co.jp/contact)
 `,
     relatedQuestions: [
