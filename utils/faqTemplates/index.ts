@@ -5,9 +5,11 @@ export { getContractTemplate } from './contractTemplate.js';
 export { getFunctionTemplate } from './functionTemplate.js';
 export { getLayoutTestTemplate } from './layoutTestTemplate.js';
 export { getOnboardingTemplate } from './onboardingTemplate.js';
-export { getPricingTemplate } from './pricingTemplate.js';
+export { getPricingTemplate, getFreePlanTemplate } from './pricingTemplate.js';
 export { getSupportTemplate } from './supportTemplate.js';
 export { getIndustryTemplate } from './industryTemplate.js';
+export { getOverviewTemplate } from './overviewTemplate.js';
+export { getBillingTemplate } from './billingTemplate.js';
 
 export {
   getRecommendationStarterTemplate,

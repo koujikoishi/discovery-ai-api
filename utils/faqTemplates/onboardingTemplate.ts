@@ -1,29 +1,28 @@
 // utils/faqTemplates/onboardingTemplate.ts
 
-export function getOnboardingTemplate() {
+import type { AnswerTemplate } from '../faqTemplate.d.ts';
+
+export function getOnboardingTemplate(): AnswerTemplate {
   return {
     answer: `
-**Discovery AI の導入ステップ**
-
-導入はとてもシンプルです。最短即日でご利用開始いただけます。
+**Discovery AI の導入はとても簡単です。**
 
 ---
 
-🚀 **ステップ一覧**
-1. お問い合わせ・初回ヒアリング
-2. トライアルまたはプラン選定
-3. 導入設計と初期設定サポート
-4. 本番利用開始
+🟢 **導入ステップ（最短1週間）**  
+1. サイト経由でお申し込み  
+2. 初期設定（各種SNSデータ等の登録）    
+3. 本番公開・利用開始  
 
 ---
 
-💡 初回限定の無料トライアルは [こちら](https://ai.elife.co.jp/plan) からお申し込みいただけます（登録不要）  
-💡 ご希望に応じてワークショップやカスタマイズ支援も対応可能です。
+🔧 必要に応じて設定サポートも承っています。  
+📩 詳しくは [お問い合わせ](https://ai.elife.co.jp/contact) よりご相談ください。
     `.trim(),
     relatedQuestions: [
-      "導入は簡単ですか？",
-      "無料トライアルはありますか？",
-      "どのようなステップで導入しますか？",
+      '導入までの流れは？',
+      'はじめ方を教えてください',
+      '導入は簡単ですか？',
     ],
   };
 }

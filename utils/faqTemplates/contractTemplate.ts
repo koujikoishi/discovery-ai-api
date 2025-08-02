@@ -1,6 +1,8 @@
 // utils/faqTemplates/contractTemplate.ts
 
-export function getContractTemplate() {
+import type { AnswerTemplate } from '../faqTemplate.d.ts';
+
+export function getContractTemplate(): AnswerTemplate {
   return {
     answer: `
 **ご契約内容について**
@@ -10,15 +12,15 @@ Discovery AIでは、ご利用プランごとに契約期間や更新条件が�
 ---
 
 📄 **Starter / Pro プラン**
-- 契約期間：1ヶ月ごとの自動更新
-- 最低契約期間：なし
+- 契約期間：1ヶ月ごとの自動更新  
+- 最低契約期間：なし  
 - 解約：更新日の前日までにお知らせください
 
 ---
 
 🏢 **Enterprise プラン**
-- 最低契約期間：6ヶ月
-- 解約：6ヶ月経過後、1ヶ月前までのご連絡で解約可能
+- 最低契約期間：6ヶ月  
+- 解約：6ヶ月経過後、1ヶ月前までのご連絡で解約可能  
 - 更新や契約のご相談も可能です
 
 ---

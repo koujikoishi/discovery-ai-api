@@ -1,6 +1,8 @@
 // utils/faqTemplates/cancelTemplate.ts
 
-export function getCancelTemplate() {
+import type { AnswerTemplate } from '../faqTemplate.d.ts';
+
+export function getCancelTemplate(): AnswerTemplate {
   return {
     answer: `
 **ご解約について**

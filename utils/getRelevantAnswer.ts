@@ -1,4 +1,4 @@
-// getRelevantAnswer.ts（v11 完全版）prefixMapによるFAQ前置き文出し分け機能付き
+// getRelevantAnswer.ts（v13：recommendation出し分け組み込み＋Discovery AIの位置づけ明示）
 
 import {
   getPricingTemplate,
@@ -23,15 +23,7 @@ import getFallbackResponse from './getFallbackResponse.js';
 import { classifyIntent } from './classifyIntent.js';
 import { Pinecone } from '@pinecone-database/pinecone';
 
-const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! });
-const index = pinecone.Index(process.env.PINECONE_INDEX_NAME!);
-
-const prefixMap: Record<string, string> = {
-  '無料で使えますか？': '無料でのご利用に関するご質問ですね。',
-  '無料プランはありますか？': '無料プランの有無についてご案内いたします。',
-  'トライアルはありますか？': 'トライアル提供についての情報です。',
-};
-
+// 🔧 recommendationテンプレート出し分けロジック
 function getRecommendationAnswer(userMessage: string, teamSize: string, purpose: string) {
   const lower = userMessage.toLowerCase();
   const matchIntro = ['はじめて', '初めて', '導入', '検討', '使い方', 'どうやって', '何から', '手順'];
@@ -55,36 +47,48 @@ function getRecommendationAnswer(userMessage: string, teamSize: string, purpose:
   return getRecommendationEnterpriseTemplate();
 }
 
+const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! });
+const index = pinecone.Index(process.env.PINECONE_INDEX_NAME!);
+
+const prefixMap: Record<string, string> = {
+  '無料で使えますか？': '無料でのご利用に関するご質問ですね。',
+  '無料プランはありますか？': '無料プランの有無についてご案内いたします。',
+  'トライアルはありますか？': 'トライアル提供についての情報です。',
+};
+
 function looseFaqMatch(userMessage: string): { answer: string; relatedQuestions: string[]; matchedQuestion?: string } | null {
   const normalized = userMessage.toLowerCase().replace(/[？?]/g, '').replace(/。/g, '').replace(/\s+/g, '');
 
-  // 明示的なトライアルや無料キーワードが "使いたい文脈" である場合のみ反応させる
-  const trialKeywords = ['トライアル', '無料で使える', 'お試し', '試せる', '体験版', '使ってみたい'];
-  for (const kw of trialKeywords) {
-    if (normalized.includes(kw.replace(/\s+/g, ''))) {
-      return {
-        ...getFreePlanTemplate(),
-        matchedQuestion: '無料で使えますか？',
-      };
+  const trialKeywords = ['トライアル', '無料', 'お試し', '体験', '試せる', '使ってみたい'];
+  const isTrialQuestion = trialKeywords.some((kw) => normalized.includes(kw));
+
+  // 念のため "サポート" や "分析" などFAQ全般の他意図キーワードが含まれる場合はマッチしない
+  const nonTrialContextKeywords = ['サポート', '分析', 'レポート', '機能', '契約', '支払い'];
+  const hasNonTrialContext = nonTrialContextKeywords.some((kw) => normalized.includes(kw));
+
+  if (isTrialQuestion) {
+    return {
+      ...getFreePlanTemplate(),
+      matchedQuestion: '無料で使えますか？',
+    };
+  }
+
+  const exactMatchCandidates = ['無料で使えますか？', '無料プランはありますか？', 'トライアルはありますか？'];
+  for (const msg of exactMatchCandidates) {
+    if (userMessage.trim() === msg) {
+      const result = getFaqTemplate(msg);
+      if (result) {
+        return {
+          ...result,
+          matchedQuestion: msg,
+        };
+      }
     }
   }
 
-  // より強くFAQ登録されている質問（完全一致）にだけマッチさせる
-  const candidates = [
-    '無料で使えますか？',
-    '無料プランはありますか？',
-    'トライアルはありますか？',
-  ];
-
-  for (const msg of candidates) {
-    const result = getFaqTemplate(msg);
-    if (result && userMessage.trim() === msg) {
-      return {
-        ...result,
-        matchedQuestion: msg,
-      };
-    }
-  }
+  const ignoredKeywords = ['契約', '料金', '費用', '価格', '支払い', 'プラン'];
+  const isIgnored = ignoredKeywords.some((kw) => normalized.includes(kw));
+  if (isIgnored) return null;
 
   return null;
 }
@@ -177,7 +181,24 @@ export async function getRelevantAnswer(
     .map((m) => `【${m.role === 'user' ? 'ユーザー' : 'アシスタント'}】${m.content}`)
     .join('\n');
 
-  const systemPrompt = `あなたはFAQチャットボットです。以下の制約条件に従って、FAQ文書の情報をもとにユーザーの質問に答えてください。\n\n# 制約条件\n- **最初の1文で要点を断定的に述べてください（summary）**\n- **その後に改行して箇条書きで詳しく補足してください（details）**\n- 曖昧な表現（例：「かもしれません」「可能性があります」）は避けてください\n- Markdown形式で可読性を高めてください\n\n# これまでの会話履歴\n${formattedHistory}\n\n# FAQ文書データ（最大3件）\n${contextText}\n\n# ユーザーからの質問\n${userMessage}`;
+  const systemPrompt = `あなたはFAQチャットボットです。以下の制約条件に従って、FAQ文書の情報をもとにユーザーの質問に答えてください。
+
+# 制約条件
+- **最初の1文で要点を断定的に述べてください（summary）**
+- **その後に改行して箇条書きで詳しく補足してください（details）**
+- 曖昧な表現（例：「かもしれません」「可能性があります」）は避けてください
+- Markdown形式で可読性を高めてください
+- Discovery AIは「AIチャットボットサービス」ではなく「マーケティングAIツール（SaaS）」です
+- Discovery AIは、マーケティング業務全体を支援するツールであり、チャットボット機能はその一部です
+
+# これまでの会話履歴
+${formattedHistory}
+
+# FAQ文書データ（最大3件）
+${contextText}
+
+# ユーザーからの質問
+${userMessage}`;
 
   const messages: { role: "system" | "user" | "assistant"; content: string }[] = [
     { role: "system", content: systemPrompt },

@@ -1,23 +1,29 @@
 // utils/faqTemplates/functionTemplate.ts
 
-export function getFunctionTemplate() {
+import type { AnswerTemplate } from '../faqTemplate.d.ts';
+
+export function getFunctionTemplate(): AnswerTemplate {
   return {
     answer: `
 **Discovery AI の主な機能について**
 
 ---
 
-🧠 **AIチャットボット**  
-- よくある質問に24時間自動応答  
-- ドキュメントを読み込んだナレッジ回答
+📊 **データ収集・統合**  
+- SNS（X、YouTube）のクチコミデータの自動取得
+- ECサイト（Amazon）のクチコミデータの自動取得
+- 自社保有データ（アンケートやコメントなど）も対象
+- 多言語データ対応で海外市場分析にも活用可能
 
-📊 **レポート分析機能**（Pro以上）  
-- ユーザーの質問傾向を可視化  
-- チャットログからVOC分析レポート生成
+🧠 **AIチャットによる自由分析** 
+- チャットUIによる分析指示  
+- プロンプト自動生成機能
+- VOCの自動ピックアップと全体傾向の自動生成
 
-⚙️ **柔軟なカスタマイズ**  
-- 業種や課題に応じて会話を最適化  
-- UIや導線のデザイン調整も対応
+⚙️ **柔軟なサポート機能**  
+- グラフなど直感的に使えるデータビジュアライズ機能  
+- ワンクリックでレポートや分析結果を組織内に共有
+- キーワード設定やレポート設定のサポート機能
 
 ---
 
