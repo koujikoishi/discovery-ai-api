@@ -1,5 +1,3 @@
-// classifyIntent.ts（ログ強化版）
-
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -10,7 +8,7 @@ const systemPrompt = `
 
 # カテゴリ一覧
 - faq: よくある質問（例：「支払い方法は？」「ログインできない」）
-- pricing: 料金に関する質問（例：「いくら？」「無料ですか？」「0円ですか？」など）
+- pricing: 料金に関する質問（例：「いくら？」「無料ですか？」など）
 - onboarding: 初期導入や申込に関する質問（例：「始め方は？」「トライアルある？」など）
 - recommendation: 提案を求める質問（例：「どれがいい？」「おすすめは？」など）
 - cancel: 解約に関する質問（例：「キャンセルできますか？」など）
@@ -43,22 +41,23 @@ export async function classifyIntent(userInput: string): Promise<string> {
   if (smalltalkKeywords.some((kw) => lowerInput.includes(kw))) return "smalltalk";
   if (nonBusinessPattern.test(userInput)) return "other";
 
-  // ローカル intent キーワードチェック
-  const matchedIntents: string[] = [];
-  for (const [intent, keywords] of Object.entries(intentKeywords)) {
-    if (keywords.some((kw) => lowerInput.includes(kw))) {
-      matchedIntents.push(intent);
+  // 意図優先度順でintent分類（smalltalkを最優先に）
+  const priorityOrder: string[] = [
+    "smalltalk", "faq", "pricing", "onboarding",
+    "recommendation", "cancel", "function",
+    "support", "login", "security", "integration", "compliance",
+    "overview", "industry", "difference", "billing"
+  ];
+
+  for (const intent of priorityOrder) {
+    const keywords = intentKeywords[intent];
+    if (keywords?.some((kw) => lowerInput.includes(kw))) {
+      console.log(`🎯 intentキーワード分類: ${intent}`);
+      return intent;
     }
   }
 
-  if (matchedIntents.length > 0) {
-    console.log(`✅ ローカルintent候補: ${matchedIntents.join(", ")}`);
-    const selected = matchedIntents[0];
-    console.log(`🎯 採用intent: ${selected}`);
-    return selected;
-  }
-
-  // GPTによる補完
+  // GPTによる補完（意図分類が特定できなかった場合）
   try {
     console.log("🧠 OpenAI intent補完実行...");
 

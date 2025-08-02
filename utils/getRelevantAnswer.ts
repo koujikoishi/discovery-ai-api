@@ -1,4 +1,4 @@
-// getRelevantAnswer.ts（構造整理・ログ統一・意図テンプレ優先ロジック＋fallback）
+// getRelevantAnswer.ts（v11 完全版）prefixMapによるFAQ前置き文出し分け機能付き
 
 import {
   getPricingTemplate,
@@ -26,7 +26,18 @@ import { Pinecone } from '@pinecone-database/pinecone';
 const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! });
 const index = pinecone.Index(process.env.PINECONE_INDEX_NAME!);
 
-function getRecommendationAnswer(teamSize: string, purpose: string) {
+const prefixMap: Record<string, string> = {
+  '無料で使えますか？': '無料でのご利用に関するご質問ですね。',
+  '無料プランはありますか？': '無料プランの有無についてご案内いたします。',
+  'トライアルはありますか？': 'トライアル提供についての情報です。',
+};
+
+function getRecommendationAnswer(userMessage: string, teamSize: string, purpose: string) {
+  const lower = userMessage.toLowerCase();
+  const matchIntro = ['はじめて', '初めて', '導入', '検討', '使い方', 'どうやって', '何から', '手順'];
+  const isIntro = matchIntro.some((kw) => lower.includes(kw));
+  if (isIntro) return getOnboardingTemplate();
+
   const size = parseInt(teamSize);
   const match = (list: string[]) => list.some((kw) => purpose.includes(kw));
   const keywords = {
@@ -44,42 +55,40 @@ function getRecommendationAnswer(teamSize: string, purpose: string) {
   return getRecommendationEnterpriseTemplate();
 }
 
-function looseFaqMatch(userMessage: string): ReturnType<typeof getFaqTemplate> {
+function looseFaqMatch(userMessage: string): { answer: string; relatedQuestions: string[]; matchedQuestion?: string } | null {
   const normalized = userMessage.toLowerCase().replace(/[？?]/g, '').replace(/。/g, '').replace(/\s+/g, '');
   const trialKeywords = ['トライアル', '無料で使える', 'お試し', '試せる', '体験版', '使ってみたい'];
 
   for (const kw of trialKeywords) {
     if (normalized.includes(kw.replace(/\s+/g, ''))) {
-      console.log('🟢 looseFaqMatch: トライアル系キーワードにヒット:', kw);
-      return getFreePlanTemplate();
+      return {
+        ...getFreePlanTemplate(),
+        matchedQuestion: '無料で使えますか？',
+      };
     }
   }
 
   const candidates = [
-    userMessage,
-    userMessage.replace('Discovery AIは', ''),
-    userMessage.replace('できますか', 'ですか'),
-    userMessage.replace('無料で使えますか', '無料プランはありますか'),
-    userMessage.replace('使えますか', 'ありますか'),
-    userMessage.replace('無料で利用できますか', '無料プランはありますか'),
-    userMessage.replace('トライアル', '無料プラン'),
+    '無料で使えますか？',
+    '無料プランはありますか？',
+    'トライアルはありますか？',
   ];
 
   for (const msg of candidates) {
-    const result = getFaqTemplate(msg.trim());
+    const result = getFaqTemplate(msg);
     if (result) {
-      console.log('✅ looseFaqMatch: candidateでマッチ:', msg);
-      return result;
+      return {
+        ...result,
+        matchedQuestion: msg,
+      };
     }
   }
 
-  if (normalized.includes('無料')) {
-    console.log('🟢 looseFaqMatch: normalized 無料 にマッチ');
-    return getFreePlanTemplate();
-  }
-  if (normalized.includes('トライアル')) {
-    console.log('🟢 looseFaqMatch: normalized トライアル にマッチ');
-    return getFreePlanTemplate();
+  if (normalized.includes('無料') || normalized.includes('トライアル')) {
+    return {
+      ...getFreePlanTemplate(),
+      matchedQuestion: '無料で使えますか？',
+    };
   }
 
   return null;
@@ -103,15 +112,17 @@ export async function getRelevantAnswer(
       .map((m) => m.content.replace('intent:', '').trim())
       .pop() || '';
 
-  const intent = await classifyIntent(userMessage);
+  const intent = forcedIntent || await classifyIntent(userMessage);
   const relatedQuestions = getRelatedQuestions(recentIntent);
   console.log('🧠 intent分類:', intent);
 
   const faqTemplate = looseFaqMatch(userMessage);
   if (faqTemplate) {
-    const [summary, ...rest] = faqTemplate.answer.split('\n').filter(Boolean);
+    const prefix = prefixMap[faqTemplate.matchedQuestion ?? ''] || '';
+    const answerWithPrefix = prefix ? `${prefix}\n\n${faqTemplate.answer}` : faqTemplate.answer;
+    const [summary, ...rest] = answerWithPrefix.split('\n').filter(Boolean);
     return {
-      answer: faqTemplate.answer,
+      answer: answerWithPrefix,
       summary,
       details: rest.join('\n'),
       relatedQuestions: faqTemplate.relatedQuestions ?? relatedQuestions,
@@ -132,7 +143,7 @@ export async function getRelevantAnswer(
       case 'recommendation': {
         const team = history.find((h) => h.role === 'system' && h.content.startsWith('team:'))?.content.split(':')[1] || '';
         const purpose = history.find((h) => h.role === 'system' && h.content.startsWith('purpose:'))?.content.split(':')[1] || '';
-        templateAnswer = getRecommendationAnswer(team, purpose).answer;
+        templateAnswer = getRecommendationAnswer(userMessage, team, purpose).answer;
         break;
       }
     }
