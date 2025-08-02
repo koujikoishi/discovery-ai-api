@@ -57,8 +57,9 @@ function getRecommendationAnswer(userMessage: string, teamSize: string, purpose:
 
 function looseFaqMatch(userMessage: string): { answer: string; relatedQuestions: string[]; matchedQuestion?: string } | null {
   const normalized = userMessage.toLowerCase().replace(/[？?]/g, '').replace(/。/g, '').replace(/\s+/g, '');
-  const trialKeywords = ['トライアル', '無料で使える', 'お試し', '試せる', '体験版', '使ってみたい'];
 
+  // 明示的なトライアルや無料キーワードが "使いたい文脈" である場合のみ反応させる
+  const trialKeywords = ['トライアル', '無料で使える', 'お試し', '試せる', '体験版', '使ってみたい'];
   for (const kw of trialKeywords) {
     if (normalized.includes(kw.replace(/\s+/g, ''))) {
       return {
@@ -68,6 +69,7 @@ function looseFaqMatch(userMessage: string): { answer: string; relatedQuestions:
     }
   }
 
+  // より強くFAQ登録されている質問（完全一致）にだけマッチさせる
   const candidates = [
     '無料で使えますか？',
     '無料プランはありますか？',
@@ -76,19 +78,12 @@ function looseFaqMatch(userMessage: string): { answer: string; relatedQuestions:
 
   for (const msg of candidates) {
     const result = getFaqTemplate(msg);
-    if (result) {
+    if (result && userMessage.trim() === msg) {
       return {
         ...result,
         matchedQuestion: msg,
       };
     }
-  }
-
-  if (normalized.includes('無料') || normalized.includes('トライアル')) {
-    return {
-      ...getFreePlanTemplate(),
-      matchedQuestion: '無料で使えますか？',
-    };
   }
 
   return null;
